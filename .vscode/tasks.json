@@ -1,0 +1,12 @@
+{
+  "tasks": [
+    {
+      "label": "make",
+      "type": "shell",
+      "command": "clear && make",
+      "group": "build",
+      "problemMatcher": []
+    },
+  ],
+  "version": "2.0.0"
+}
