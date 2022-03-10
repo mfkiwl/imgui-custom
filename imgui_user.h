@@ -2,32 +2,51 @@
 
 #include <opencv2/imgproc.hpp>
 
-enum CustomGuiIcon_
+enum ImGuiButtonIcon_
 {
-  CustomGuiIcon_RightArrow,
-  CustomGuiIcon_Add,
-  CustomGuiIcon_Mag,
-  CustomGuiIcon_Setting,
+  ImGuiButtonIcon_RightArrow,
+  ImGuiButtonIcon_Add,
+  ImGuiButtonIcon_Mag,
+  ImGuiButtonIcon_Setting,
 };
+
+enum ImGuiPopMessageBoxFlags_
+{
+  ImGuiPopMessageBoxFlags_None = 0,
+  ImGuiPopMessageBoxFlags_OK = 1 << 0,
+  ImGuiPopMessageBoxFlags_CANCEL = 1 << 1,
+  ImGuiPopMessageBoxFlags_DONT_ASK_ME = 1 << 2,
+
+  ImGuiPopMessageBoxFlags_OK_CANCEL = ImGuiPopMessageBoxFlags_OK | ImGuiPopMessageBoxFlags_CANCEL,
+};
+
+typedef int ImGuiPopMessageBoxFlags;
+typedef int ImGuiButtonIcon;
 
 typedef unsigned int uiTextureID;		/* 4-byte unsigned */
 
 namespace ImGui
 {
   extern const int CENTER;
-  bool Init(const char* title, int x = CENTER, int y = CENTER, int w = 640, int h = 480, bool full_screen = false);
-  void deinit();
+  namespace SDLGL2
+  {
+    bool Init(const char* title, int x = CENTER, int y = CENTER, int w = 640, int h = 480, bool full_screen = false);
+    void Deinit();
 
-  void set_background_cr(float r, float g, float b, float a);
 
-  void new_frame();
-  void set_style(float window_border, float window_padding, float item_spacing);
+    void NewFrame();
 
-  bool update();
-  void render();
+    bool Update();
+    void Render();
 
-  uiTextureID create_texture();
-  bool imshow(cv::Mat img, uiTextureID texture_id);
+    uiTextureID CreateTexture();
+    bool Show(cv::Mat img, uiTextureID texture_id);
+  }
 
-  bool RadioMenuButton(const char* str_id, int* active_id, int btn_id, int icon, float scale = 1.5f);
+  void SetBackground(float r, float g, float b, float a);
+  void SetStyle(float window_border, float window_padding, float item_spacing);
+  bool RadioMenuButton(const char* str_id, int* active_id, int btn_id, ImGuiButtonIcon icon, float scale = 1.5f);
+
+  // PopupMessageBox with OpenPopup
+  bool PopupMessageBox(const char* name, const char* message, ImGuiPopMessageBoxFlags flags);
 }

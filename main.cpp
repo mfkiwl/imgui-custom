@@ -36,22 +36,25 @@ int main(int, char**)
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, initCamHeight);
   cap.set(cv::CAP_PROP_FPS, initCamFps);
 
-  ImGui::Init("GUI", ImGui::CENTER, ImGui::CENTER, 1280, 720);
+  ImGui::SDLGL2::Init("GUI", ImGui::CENTER, ImGui::CENTER, 1280, 720);
+  ImGui::GetIO().IniFilename = "GUI.ini";
+
   ImGuiIO& io = ImGui::GetIO();
   ImFont* font = io.Fonts->AddFontFromFileTTF("font.ttf", 32.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 
   // Our state
-  ImGui::set_background_cr(0.12f, 0.12f, 0.12f, 1.00f);
-  uiTextureID frame_texture_id = ImGui::create_texture();
+  ImGui::SetBackground(0.12f, 0.12f, 0.12f, 1.00f);
+  uiTextureID frame_texture_id = ImGui::SDLGL2::CreateTexture();
 
   // Main loop
   cv::Mat frame;
   bool done = false;
+  ImGuiStyle& style = ImGui::GetStyle();
+  ImGui::SetStyle(0.0f, 8.0f, 15.0f);
+
   while (!done)
   {
-    ImGui::new_frame();
-    ImGuiStyle& style = ImGui::GetStyle();
-    ImGui::set_style(0.0f, 8.0f, 15.0f);
+    ImGui::SDLGL2::NewFrame();
 
     static int active_menu = -1;
     ImVec2 TotalSize(0, 0);
@@ -73,17 +76,20 @@ int main(int, char**)
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 
       ImGui::Begin("Menu Buttons", NULL, window_flags);
-      ImGui::RadioMenuButton("#menu_live", &active_menu, 0, CustomGuiIcon_RightArrow);
+      ImGui::RadioMenuButton("##menu_live", &active_menu, 0, ImGuiButtonIcon_RightArrow);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Live");
 
-      ImGui::RadioMenuButton("#menu_regist", &active_menu, 1, CustomGuiIcon_Add);
+      ImGui::RadioMenuButton("##menu_regist", &active_menu, 1, ImGuiButtonIcon_Add);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Regist");
 
-      ImGui::RadioMenuButton("#menu_status", &active_menu, 2, CustomGuiIcon_Mag);
+      ImGui::RadioMenuButton("##menu_status", &active_menu, 2, ImGuiButtonIcon_Mag);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Registration Status");
 
+      if (ImGui::Button("-")) ImGui::OpenPopup("Delete?");
+      ImGui::PopupMessageBox("Delete?", "All those beautiful files will be deleted.\nThis operation cannot be undone!\n\n", ImGuiPopMessageBoxFlags_OK_CANCEL | ImGuiPopMessageBoxFlags_DONT_ASK_ME);
+
       ImGui::SetCursorPosY(io.DisplaySize.y - ImGui::GetItemRectSize().y - style.ItemSpacing.y);
-      ImGui::RadioMenuButton("#menu_setting", &active_menu, 3, CustomGuiIcon_Setting);
+      ImGui::RadioMenuButton("##menu_setting", &active_menu, 3, ImGuiButtonIcon_Setting);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Setting");
 
       TotalSize.x += ImGui::GetWindowSize().x;
@@ -149,41 +155,14 @@ int main(int, char**)
 
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
       ImGui::Begin("View", NULL, window_flags);
-      ImGui::imshow(frame, frame_texture_id);
+      ImGui::SDLGL2::Show(frame, frame_texture_id);
       ImGui::End();
       ImGui::PopStyleVar();
     }
 
-    {
-      ImGui::OpenPopup("Delete?");
-
-      // Always center this window when appearing
-      ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-      ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-      if (ImGui::BeginPopupModal("Delete?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-      {
-        ImGui::Text("All those beautiful files will be deleted.\nThis operation cannot be undone!\n\n");
-        ImGui::Separator();
-
-        //static int unused_i = 0;
-        //ImGui::Combo("Combo", &unused_i, "Delete\0Delete harder\0");
-
-        static bool dont_ask_me_next_time = false;
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-        ImGui::Checkbox("Don't ask me next time", &dont_ask_me_next_time);
-        ImGui::PopStyleVar();
-
-        if (ImGui::Button("OK", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-        ImGui::SetItemDefaultFocus();
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
-        ImGui::EndPopup();
-      }
-    }
-    done = ImGui::update();
+    done = ImGui::SDLGL2::Update();
   }
 
-  ImGui::deinit();
+  ImGui::SDLGL2::Deinit();
   return 0;
 }
