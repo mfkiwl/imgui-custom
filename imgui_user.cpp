@@ -126,6 +126,8 @@ namespace ImGui
     }
     bool Show(cv::Mat img, uiTextureID texture_id)
     {
+      cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
+
       glBindTexture(GL_TEXTURE_2D, (GLuint)texture_id);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.cols, img.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, img.data);
 

@@ -151,7 +151,6 @@ int main(int, char**)
       ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - TotalSize.x, io.DisplaySize.y), ImGuiCond_Always);
 
       cap.read(frame);
-      cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
 
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
       ImGui::Begin("View", NULL, window_flags);
