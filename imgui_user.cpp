@@ -299,6 +299,12 @@ namespace ImGui
     return pressed;
   }
 
+  float CalcRadioMenuButtonSize(float scale)
+  {
+    return ImGui::GetFrameHeight() * scale;
+  }
+
+
   bool PopupMessageBox(const char* name, const char* message, ImGuiPopMessageBoxFlags flags)
   {
     const ImGuiID id = ImGui::GetID(name);

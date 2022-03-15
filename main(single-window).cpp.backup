@@ -50,69 +50,69 @@ int main(int, char**)
   cv::Mat frame;
   bool done = false;
   ImGuiStyle& style = ImGui::GetStyle();
-  ImGui::SetStyle(0.0f, 8.0f, 15.0f);
+  ImGui::SetStyle(0.0f, 0.0f, 15.0f);
 
   while (!done)
   {
     ImGui::SDLGL2::NewFrame();
 
     static int active_menu = -1;
-    ImVec2 TotalSize(0, 0);
+    ImGuiWindowFlags window_flags =
+      ImGuiWindowFlags_NoTitleBar |
+      ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoNav |
+      ImGuiWindowFlags_AlwaysUseWindowPadding;
+
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(io.DisplaySize, ImGuiCond_Always);
+
+    ImGui::Begin("MainWnd", NULL, window_flags);
     {
-      ImGuiWindowFlags window_flags =
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoScrollbar |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoNav;
-
-      ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-      ImGui::SetNextWindowSize(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always);
-
-      ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2f, 0.2f, 0.2f, 1.00f));
+      static float child_max_width = 0;
+      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.00f));
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.52f, 0.52f, 0.52f, 1.0f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-      ImGui::Begin("Menu Buttons", NULL, window_flags);
-      ImGui::RadioMenuButton("##menu_live", &active_menu, 0, ImGuiButtonIcon_RightArrow);
+      float btn_scale = 2.0f;
+      ImGui::BeginChild("##Menu", ImVec2(child_max_width, 0.0f), false, window_flags);
+      ImGui::BeginGroup();
+      ImGui::RadioMenuButton("##menu_live", &active_menu, 0, ImGuiButtonIcon_RightArrow, btn_scale);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Live");
 
-      ImGui::RadioMenuButton("##menu_regist", &active_menu, 1, ImGuiButtonIcon_Add);
+      ImGui::RadioMenuButton("##menu_regist", &active_menu, 1, ImGuiButtonIcon_Add, btn_scale);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Regist");
 
-      ImGui::RadioMenuButton("##menu_status", &active_menu, 2, ImGuiButtonIcon_Mag);
+      ImGui::RadioMenuButton("##menu_status", &active_menu, 2, ImGuiButtonIcon_Mag, btn_scale);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Registration Status");
 
       if (ImGui::Button("-")) ImGui::OpenPopup("Delete?");
       ImGui::PopupMessageBox("Delete?", "All those beautiful files will be deleted.\nThis operation cannot be undone!\n\n", ImGuiPopMessageBoxFlags_OK_CANCEL | ImGuiPopMessageBoxFlags_DONT_ASK_ME);
 
-      ImGui::SetCursorPosY(io.DisplaySize.y - ImGui::GetItemRectSize().y - style.ItemSpacing.y);
-      ImGui::RadioMenuButton("##menu_setting", &active_menu, 3, ImGuiButtonIcon_Setting);
+      ImGui::SetCursorPosY(io.DisplaySize.y - ImGui::CalcRadioMenuButtonSize(btn_scale) - style.ItemSpacing.y);
+      ImGui::RadioMenuButton("##menu_setting", &active_menu, 3, ImGuiButtonIcon_Setting, btn_scale);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("Setting");
-
-      TotalSize.x += ImGui::GetWindowSize().x;
-      ImGui::End();
+      ImGui::EndGroup();
+      child_max_width = ImGui::GetItemRectMax().x;
+      ImGui::EndChild();
 
       ImGui::PopStyleColor(4);
+      ImGui::PopStyleVar();
+
+      ImGui::SameLine(0.0f, 0.0f);
     }
 
     if (active_menu >= 0)
     {
-      ImGuiWindowFlags window_flags =
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoScrollbar |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoNav;
+      static float child_max_width = 0;
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
 
-      ImGui::SetNextWindowPos(ImVec2(TotalSize.x, 0), ImGuiCond_Always);
-      ImGui::SetNextWindowSize(ImVec2(0, io.DisplaySize.y), ImGuiCond_Always);
-
-      ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
-      ImGui::Begin("Context Menu", NULL, window_flags);
+      ImGui::BeginChild("##Context Menu", ImVec2(child_max_width, 0.0f), false, window_flags);
       std::string strCamID; strCamID.reserve(15);
 
       switch (active_menu)
@@ -137,32 +137,23 @@ int main(int, char**)
       default:
         break;
       }
-      TotalSize.x += ImGui::GetWindowSize().x;
-      ImGui::End();
+      child_max_width = ImGui::GetItemRectMax().x;
+      ImGui::EndChild();
+
       ImGui::PopStyleColor(1);
+      ImGui::PopStyleVar();
+
+      ImGui::SameLine(0.0f, 0.0f);
     }
 
     {
-      ImGuiWindowFlags window_flags =
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoScrollbar |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMouseInputs |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoNav |
-        ImGuiWindowFlags_NoBackground;
-
-      ImGui::SetNextWindowPos(ImVec2(TotalSize.x, 0), ImGuiCond_Always);
-      ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - TotalSize.x, io.DisplaySize.y), ImGuiCond_Always);
-
       cap.read(frame);
 
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-      ImGui::Begin("View", NULL, window_flags);
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.12f, 1.00f));
+      ImGui::BeginChild("##View", ImVec2(0, 0), false, window_flags);
       ImGui::SDLGL2::Show(frame, frame_texture_id);
-      ImGui::End();
-      ImGui::PopStyleVar();
+      ImGui::EndChild();
+      ImGui::PopStyleColor(1);
     }
 
     // {
@@ -197,6 +188,7 @@ int main(int, char**)
     //   }
     //   ImGui::PopStyleColor();
     // }
+    ImGui::End();
 
     done = ImGui::SDLGL2::Update();
   }
