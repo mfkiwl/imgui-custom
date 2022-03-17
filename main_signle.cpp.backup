@@ -112,7 +112,7 @@ int main(int, char**)
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
       ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
 
-      ImGui::BeginChild("##Context Menu", ImVec2(child_max_width, 0.0f), false, window_flags);
+      ImGui::BeginChild("##Context Menu", ImVec2(0.0f, 0.0f), false, window_flags);
       std::string strCamID; strCamID.reserve(15);
 
       switch (active_menu)
@@ -151,7 +151,7 @@ int main(int, char**)
 
       ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.12f, 1.00f));
       ImGui::BeginChild("##View", ImVec2(0, 0), false, window_flags);
-      ImGui::SDLGL2::Show(frame, frame_texture_id);
+      ImGui::SDLGL2::Image(frame, frame_texture_id, ImGuiImageDrawFlgs_Center, true);
       ImGui::EndChild();
       ImGui::PopStyleColor(1);
     }

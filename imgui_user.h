@@ -20,10 +20,24 @@ enum ImGuiPopMessageBoxFlags_
   ImGuiPopMessageBoxFlags_OK_CANCEL = ImGuiPopMessageBoxFlags_OK | ImGuiPopMessageBoxFlags_CANCEL,
 };
 
+enum ImGuiImageDrawFlgs_
+{
+  ImGuiImageDrawFlgs_AignNone = 0,
+  ImGuiImageDrawFlgs_TopLeft = 0,
+  ImGuiImageDrawFlgs_TopRight = 1,
+  ImGuiImageDrawFlgs_BottomLeft = 2,
+  ImGuiImageDrawFlgs_BottomRight = 3,
+  ImGuiImageDrawFlgs_XCenter = 4,
+  ImGuiImageDrawFlgs_YCenter = 8,
+  ImGuiImageDrawFlgs_Center = ImGuiImageDrawFlgs_XCenter | ImGuiImageDrawFlgs_YCenter,
+};
+
 typedef int ImGuiPopMessageBoxFlags;
 typedef int ImGuiButtonIcon;
+typedef int ImGuiImageDrawFlgs;
 
 typedef unsigned int uiTextureID;		/* 4-byte unsigned */
+struct ImVec2;
 
 namespace ImGui
 {
@@ -40,16 +54,16 @@ namespace ImGui
     void        Render();
 
     uiTextureID CreateTexture();
-    bool        Show(cv::Mat img, uiTextureID texture_id);
+    ImVec2      Image(cv::Mat img, uiTextureID texture_id, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
 
   void          SetBackground(float r, float g, float b, float a);
-  void          SetStyle(float window_border, float window_padding, float item_spacing);
-  bool          RadioMenuButton(const char* str_id, int* active_id, int btn_id, ImGuiButtonIcon icon, float scale = 1.5f);
+  void          SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing);
+  bool          RadioIconButton(const char* str_id, int* active_id, int btn_id, ImGuiButtonIcon icon, float scale = 1.5f);
 
-  float        CalcRadioMenuButtonSize(float scale = 1.5f);
+  float         CalcRadioIconButtonSize(float scale = 1.5f);
 
 
   // PopupMessageBox with OpenPopup
-  bool        PopupMessageBox(const char* name, const char* message, ImGuiPopMessageBoxFlags flags);
+  bool          PopupMessageBox(const char* name, const char* message, ImGuiPopMessageBoxFlags flags);
 }

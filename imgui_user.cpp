@@ -124,27 +124,38 @@ namespace ImGui
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
       return (uiTextureID)texture_id;
     }
-    bool Show(cv::Mat img, uiTextureID texture_id)
+    ImVec2 Image(cv::Mat bgr, uiTextureID texture_id, ImGuiImageDrawFlgs align, bool autosize)
     {
-      cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
+      cv::Mat img;
+      cv::cvtColor(bgr, img, cv::COLOR_BGR2RGB);
 
       glBindTexture(GL_TEXTURE_2D, (GLuint)texture_id);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.cols, img.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, img.data);
 
       ImVec2 region = ImGui::GetContentRegionAvail();
-      float aspr_region = (float)region.x / region.y;
-      float aspr_img = (float)img.cols / img.rows;
-      float scale = 1.0;
-      if (aspr_region > aspr_img)
-        scale = (float)region.y / img.rows;
-      else
-        scale = (float)region.x / img.cols;
+      ImVec2 view(img.cols, img.rows);
+      if (autosize)
+      {
+        float aspr_region = (float)region.x / region.y;
+        float aspr_img = (float)img.cols / img.rows;
+        float scale = 1.0;
+        if (aspr_region > aspr_img)
+          scale = (float)region.y / img.rows;
+        else
+          scale = (float)region.x / img.cols;
+        view = ImVec2(img.cols * scale, img.rows * scale);
+      }
 
-      ImVec2 view(img.cols * scale, img.rows * scale);
-      ImGui::SetCursorPos((ImGui::GetWindowSize() - view) * 0.5);
+      ImVec2 cur_pos = ImGui::GetCursorPos();
+      cur_pos.x += (align & 1) / 1 * (region.x - view.x);
+      cur_pos.y += (align & 2) / 2 * (region.y - view.y);
+
+      cur_pos.x += (align & 4) / 8.0f * (region.x - view.x);
+      cur_pos.y += (align & 8) / 16.0f * (region.y - view.y);
+
+      ImGui::SetCursorPos(cur_pos);
       ImGui::Image((void*)(intptr_t)texture_id, view);
-
-      return true;
+      return cur_pos;
     }
   }
 
@@ -153,11 +164,12 @@ namespace ImGui
     clear_color = ImVec4(r, g, b, a);
   }
 
-  void SetStyle(float window_border, float window_padding, float item_spacing)
+  void SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing)
   {
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowBorderSize = window_border;
-    style.WindowPadding = ImVec2(window_padding, window_padding);
+    style.WindowPadding = window_padding;
+    style.FramePadding = frame_padding;
     style.ItemSpacing.y = item_spacing;
   }
 
@@ -243,7 +255,7 @@ namespace ImGui
     draw_list->AddCircle(center, hsz * 0.3f, col, 0, thickness);
   }
 
-  bool RadioMenuButton(const char* str_id, int* active_id, int btn_id, int icon, float scale)
+  bool RadioIconButton(const char* str_id, int* active_id, int btn_id, int icon, float scale)
   {
     float sz = ImGui::GetFrameHeight() * scale;
     ImVec2 size(sz, sz);
@@ -264,10 +276,8 @@ namespace ImGui
     bool active = *active_id == btn_id;
     if (pressed)
     {
-      if (!active)
-        *active_id = btn_id;
-      else
-        *active_id = -1;
+      if (!active) *active_id = btn_id;
+      // else *active_id = -1;
     }
 
     if (held || hovered)
@@ -299,7 +309,7 @@ namespace ImGui
     return pressed;
   }
 
-  float CalcRadioMenuButtonSize(float scale)
+  float CalcRadioIconButtonSize(float scale)
   {
     return ImGui::GetFrameHeight() * scale;
   }
