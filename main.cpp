@@ -18,26 +18,13 @@
 // Main code
 int main(int, char**)
 {
-  int initCamWidth = 1280;
-  int initCamHeight = 720;
-  const int initCamFps = 60;
+  int initCamWidth = 640;
+  int initCamHeight = 480;
+  const int initCamFps = 30;
 
   cv::VideoCapture cap;
-  cap.open("/dev/video0");
 
-  if (!cap.isOpened())
-  {
-    printf("Error: cam cannot open!\n");
-    return -1;
-  }
-
-  cap.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-  cap.set(cv::CAP_PROP_FRAME_WIDTH, initCamWidth);
-  cap.set(cv::CAP_PROP_FRAME_HEIGHT, initCamHeight);
-  cap.set(cv::CAP_PROP_FPS, initCamFps);
-
-  ImGui::SDLGL2::Init("GUI", ImGui::CENTER, ImGui::CENTER, 1280, 720);
-  ImGui::GetIO().IniFilename = "GUI.ini";
+  ImGui::SDLGL2::Init("GUI", ImGui::CENTER, ImGui::CENTER, 1440, 1620);
 
   ImGuiIO& io = ImGui::GetIO();
   ImFont* font = io.Fonts->AddFontFromFileTTF("font.ttf", 32.0f, NULL, io.Fonts->GetGlyphRangesKorean());
@@ -62,17 +49,17 @@ int main(int, char**)
   ImGuiStyle& style = ImGui::GetStyle();
   ImGui::SetStyle(0.0f, ImVec2(0.0f, 0.0f), ImVec2(8.0f, 8.0f), 10.0f);
 
-  int active_menu = 1;
+  const char* menus[] = { "Live", "RegFacer Registerist", "Registration Status", "Setting" };
+  int active_menu = cap.isOpened() ? 0 : 3;
+  active_menu = 2;
   std::string name; name.reserve(15);
   std::string work; work.reserve(15);
   bool bBtCapture = false, bBtRecapture = false, bBtManulRegist = false;
   while (!done)
   {
-    active_menu = std::max(0, active_menu);
-
     ImGui::SDLGL2::NewFrame();
 
-    ImVec2 TotalSize(0, 0);
+    ImVec2 MenuSize(0, 0);
     {
       ImGuiWindowFlags window_flags =
         ImGuiWindowFlags_NoSavedSettings |
@@ -94,22 +81,24 @@ int main(int, char**)
       float btn_scale = 2.0f;
       ImGui::Begin("Menu Buttons", NULL, window_flags);
       ImGui::RadioIconButton("##MENU LIVE", &active_menu, 0, ImGuiButtonIcon_RightArrow, btn_scale);
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Live");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip(menus[0]);
 
       ImGui::RadioIconButton("##MENU REGIST", &active_menu, 1, ImGuiButtonIcon_Add, btn_scale);
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Regist");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip(menus[1]);
 
       ImGui::RadioIconButton("##MENU STATUS", &active_menu, 2, ImGuiButtonIcon_Mag, btn_scale);
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Registration Status");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip(menus[2]);
+
+      ImGui::RadioIconButton("##MENU REFRESH_MENU", &active_menu, 4, ImGuiButtonIcon_RightArrow, btn_scale);
 
       if (ImGui::Button("-")) ImGui::OpenPopup("Delete?");
       ImGui::PopupMessageBox("Delete?", "All those beautiful files will be deleted.\nThis operation cannot be undone!\n\n", ImGuiPopMessageBoxFlags_OK_CANCEL | ImGuiPopMessageBoxFlags_DONT_ASK_ME);
 
       ImGui::SetCursorPosY(io.DisplaySize.y - ImGui::CalcRadioIconButtonSize(btn_scale) - style.ItemSpacing.y);
       ImGui::RadioIconButton("##MENU SETTING", &active_menu, 3, ImGuiButtonIcon_Setting, btn_scale);
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Setting");
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip(menus[3]);
 
-      TotalSize.x += ImGui::GetWindowSize().x;
+      MenuSize.x += ImGui::GetWindowSize().x;
       ImGui::End();
 
       ImGui::PopStyleColor(4);
@@ -125,25 +114,62 @@ int main(int, char**)
         ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoMouseInputs |
         ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoNav |
-        ImGuiWindowFlags_NoBackground;
+        ImGuiWindowFlags_NoNav;
 
       cap.read(frame);
 
-      ImGui::SetNextWindowPos(ImVec2(TotalSize.x, 0.0f), ImGuiCond_Always);
-      ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - TotalSize.x, io.DisplaySize.y), ImGuiCond_Always);
+      ImGui::SetNextWindowPos(ImVec2(MenuSize.x, 0.0f), ImGuiCond_Always);
+      ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - MenuSize.x, io.DisplaySize.y), ImGuiCond_Always);
       ImGui::Begin("##VIEW", NULL, window_flags);
-      ImVec2 pos = ImGui::SDLGL2::Image(frame, view_texture_id, ImGuiImageDrawFlgs_Center, true);
+      ImGui::SDLGL2::Image(frame, view_texture_id, ImGuiImageDrawFlgs_Center, true);
+      ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
+      ImGui::SetWindowFontScale(2.0f);
+      ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "LIVE");
+      ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+
+      float showFrameScale = size.x / frame.cols;
+      int sz = frame.cols / 10 * showFrameScale;
+      int x = pos.x + frame.cols / 2 * showFrameScale, y = pos.y + frame.rows / 2 * showFrameScale;
+      //float showFrameScale = 1.0f;
+      //int x=pos.z/2, y=pos.w/2;
+      //int x = p.x + pos.z / 2, y = p.y + pos.w / 2;
+      std::vector<ImVec2> pts =
+      {
+        ImVec2(x + sz, y), ImVec2(x, y), ImVec2(x, y + sz),
+      };
+      ImGui::GetWindowDrawList()->AddPolyline(pts.data(), pts.size(), IM_COL32(255, 0, 0, 255), ImDrawFlags_None, 5);
+
       ImGui::End();
 
-      ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - pos.x - 32.0f, pos.y + 32.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-      ImGui::SetNextWindowBgAlpha(1.0f); // Transparent background
-      ImGui::Begin("##LIVE", NULL, window_flags);
-      ImGui::SetWindowFontScale(2.0f);
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "LIVE");
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      draw_list->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
-      ImGui::End();
+      {
+        ImGui::SetNextWindowPos(ImVec2(MenuSize.x, 0), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - MenuSize.x, io.DisplaySize.y), ImGuiCond_Always);
+        ImGui::SetNextWindowBgAlpha(0.5f); // Transparent background
+        ImGui::Begin("##Overlay Text", NULL, window_flags);
+        ImGui::SetWindowFontScale(2.0f);
+        ImGui::Text("인증(Confirm)");
+        ImGui::End();
+      }
+
+      // if (!ImGui::IsPopupOpen("Delete?"))
+      //   ImGui::OpenPopup("##Overlay Text");
+      // {
+      //   ImGui::SetNextWindowPos(ImVec2(TotalSize.x + 20, 20), ImGuiCond_Always);
+      //   ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 0.35f));
+      //   if (ImGui::BeginPopupModal("##Overlay Text", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
+      //   {
+      //     ImGui::SetWindowFontScale(2.0f);
+      //     ImGui::Text("인증(Confirm)");
+      //     ImGui::EndPopup();
+      //   }
+      //   ImGui::PopStyleColor();
+      // }
+
+    }
+    else if (active_menu == 4)
+    {
+
     }
     else
     {
@@ -156,39 +182,18 @@ int main(int, char**)
         ImGuiWindowFlags_NoNav |
         ImGuiWindowFlags_AlwaysUseWindowPadding;
 
-      int width = active_menu == 0 ? 0 : io.DisplaySize.x - TotalSize.x;
-      ImGui::SetNextWindowPos(ImVec2(TotalSize.x, 0), ImGuiCond_Always);
-      ImGui::SetNextWindowSize(ImVec2(width, io.DisplaySize.y), ImGuiCond_Always);
+      ImGui::SetNextWindowPos(ImVec2(MenuSize.x, 0), ImGuiCond_Always);
+      ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - MenuSize.x, io.DisplaySize.y), ImGuiCond_Always);
 
       ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
       ImGui::Begin("Context Menu", NULL, window_flags);
       const char* title = NULL;
       const float TEXT_BASE_HEIGHT = ImGui::GetTextLineHeightWithSpacing();
-      int sel = -1;
-
-      switch (active_menu)
-      {
-      case 1:
-        title = "Regist";
-        break;
-      case 2:
-      {
-        title = "Registration Status";
-      }
-      break;
-      case 3:
-        title = "Setting";
-        break;
-      default:
-        break;
-      }
-
-      if (title)
       {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.12f, 1.00f));
         ImGui::BeginChild("##TITLE", ImVec2(0, ImGui::GetTextLineHeight() + 16.0f), false, window_flags);
-        ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), title);
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), menus[active_menu]);
         ImGui::EndChild();
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar();
@@ -208,16 +213,22 @@ int main(int, char**)
         ImGui::BeginChild("##Cam", ImVec2(0, ImGui::GetTextLineHeight() + 16.0f), false, window_flags);
         const char* items[] = { "Cam1", "Cam2" };
         static int current_item = 0;
-        ImGui::SetNextItemWidth(ImGui::CalcTextSize("Cam10      ").x);
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize("Cam10").x + ImGui::GetFrameHeight());
         ImGui::Combo("##Cam", &current_item, items, IM_ARRAYSIZE(items));
         ImGui::EndChild();
 
         cap.read(frame);
 
-        ImGui::BeginChild("##VIEW CHILD", ImVec2(view_region, 0), false, window_flags);
-        ImVec2 pos = ImGui::SDLGL2::Image(frame, view_texture_id, ImGuiImageDrawFlgs_Center, true);
-        pos.y += ImGui::GetWindowPos().y;
-        ImGui::EndChild();
+        {
+          ImGui::BeginChild("##VIEW CHILD", ImVec2(view_region, 0), false, window_flags);
+          ImGui::SDLGL2::Image(frame, view_texture_id, ImGuiImageDrawFlgs_Center, true);
+          ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
+          ImGui::SetWindowFontScale(2.0f);
+          ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
+          ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "LIVE");
+          ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+          ImGui::EndChild();
+        }
 
         cv::Mat img = cv::imread("0.jpg");
         ImGui::SameLine();
@@ -243,14 +254,6 @@ int main(int, char**)
         ImGui::EndChild();
 
         ImGui::PopStyleVar();
-
-        ImGui::SetNextWindowPos(ImVec2(TotalSize.x + view_region - pos.x - 16.0f, pos.y + 16.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-        ImGui::SetNextWindowBgAlpha(1.0f); // Transparent background
-        ImGui::BeginChild("##LIVE", ImGui::CalcTextSize("LIVE"), false, window_flags);
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "LIVE");
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
-        ImGui::EndChild();
       }
       break;
       case 2:
@@ -269,21 +272,22 @@ int main(int, char**)
         ImGuiTableFlags table_flags =
           ImGuiTableFlags_SizingFixedFit |
           //  ImGuiTableFlags_SizingFixedSame;
+          ImGuiTableFlags_Borders |
           ImGuiTableFlags_SizingFixedSame;
 
         static int clicked_id = 0;
         if (ImGui::BeginTable("##STATUS", column, table_flags, ImVec2(icon_region - padding * 2, 0.0f)))
         {
           ImGui::SetWindowFontScale(0.7f);
-          for (int r = 0; r < 2; r++)
+          for (int r = 0; r < 1; r++)
           {
             ImGui::TableNextRow();
             for (int c = 0; c < column; c++)
             {
               cv::Mat img = cv::imread(cv::format("%d.jpg", r * column + c));
               ImGui::TableNextColumn();
-              ImVec2 icon_pos = ImGui::SDLGL2::Image(img, texture_ids[r * column + c], ImGuiImageDrawFlgs_XCenter);
-              float indent = icon_pos.x - ImGui::GetCursorPos().x;
+              ImGui::SDLGL2::Image(img, texture_ids[r * column + c], ImGuiImageDrawFlgs_XCenter);
+              float indent = ImGui::GetItemRectMin().x - ImGui::GetCursorScreenPos().x;
               ImGui::Indent(indent);
               ImGui::Text("이름: 홍길동");
               int id = r * column + c;
@@ -303,8 +307,8 @@ int main(int, char**)
         ImGui::SameLine();
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImGui::SetWindowFontScale(1.0f);
-        ImVec2 icon_pos = ImGui::SDLGL2::Image(img, view_texture_id, ImGuiImageDrawFlgs_XCenter, true);
-        float indent = icon_pos.x - ImGui::GetCursorPos().x;
+        ImGui::SDLGL2::Image(img, view_texture_id, ImGuiImageDrawFlgs_XCenter, true);
+        float indent = ImGui::GetItemRectMin().x - ImGui::GetCursorScreenPos().x;
         ImGui::Indent(indent);
         ImGui::Text("ID: %d", clicked_id);
         ImGui::Text("이름: 홍길동");
@@ -316,56 +320,41 @@ int main(int, char**)
       }
       break;
       case 3:
+      {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
         ImGui::BeginChild("##CHILD", ImVec2(0, 0), false, window_flags);
-        ImGui::Text("장치");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::CalcTextSize("/dev/video10  ").x);
-        ImGui::InputText("##DEVID", strCamID.data(), 13);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("장치:");
+        ImGui::SameLine(0.0f, 10.0f);
+
+        const char* items[] = { "Cam1", "Cam2", "Cam3", "Cam4", "Cam5", "Cam6" };
+        static int current_item = 0;
+        ImGui::SetNextItemWidth(ImGui::CalcTextSize("Cam1    ").x + ImGui::GetFrameHeight());
+        if (ImGui::Combo("##Cam", &current_item, items, IM_ARRAYSIZE(items)))
+        {
+          cap.open(cv::format("/dev/video%d", current_item));
+          if (!cap.isOpened())
+          {
+            printf("Error: cam cannot open!\n");
+            return -1;
+          }
+          cap.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+          cap.set(cv::CAP_PROP_FRAME_WIDTH, initCamWidth);
+          cap.set(cv::CAP_PROP_FRAME_HEIGHT, initCamHeight);
+          cap.set(cv::CAP_PROP_FPS, initCamFps);
+        }
+
         ImGui::EndChild();
         ImGui::PopStyleVar();
-        break;
+      }
+      break;
       default:
         break;
       }
 
-      TotalSize.x += ImGui::GetWindowSize().x;
       ImGui::End();
       ImGui::PopStyleColor(1);
     }
-
-    // {
-    //   ImGuiWindowFlags window_flags =
-    //     ImGuiWindowFlags_NoDecoration |
-    //     ImGuiWindowFlags_AlwaysAutoResize |
-    //     ImGuiWindowFlags_NoSavedSettings |
-    //     ImGuiWindowFlags_NoFocusOnAppearing |
-    //     ImGuiWindowFlags_NoNav |
-    //     ImGuiWindowFlags_NoMove;
-
-    //   ImGui::OpenPopup("##Overlay Text");
-    //   ImGui::SetNextWindowPos(ImVec2(TotalSize.x, 0), ImGuiCond_Always);
-    //   ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - TotalSize.x, io.DisplaySize.y), ImGuiCond_Always);
-    //   ImGui::SetNextWindowBgAlpha(0.5f); // Transparent background
-    //   ImGui::Begin("##Overlay Text", NULL, window_flags);
-    //   ImGui::SetWindowFontScale(2.0f);
-    //   ImGui::Text("인증(Confirm)");
-    //   ImGui::End();
-    // }
-
-    // if (!ImGui::IsPopupOpen("Delete?"))
-    //   ImGui::OpenPopup("##Overlay Text");
-    // {
-    //   ImGui::SetNextWindowPos(ImVec2(TotalSize.x + 20, 20), ImGuiCond_Always);
-    //   ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 0.35f));
-    //   if (ImGui::BeginPopupModal("##Overlay Text", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
-    //   {
-    //     ImGui::SetWindowFontScale(2.0f);
-    //     ImGui::Text("인증(Confirm)");
-    //     ImGui::EndPopup();
-    //   }
-    //   ImGui::PopStyleColor();
-    // }
 
     done = ImGui::SDLGL2::Update();
   }

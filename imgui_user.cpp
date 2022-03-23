@@ -52,6 +52,7 @@ namespace ImGui
       // Setup Dear ImGui style
       ImGui::StyleColorsDark();
 
+      ImGui::GetIO().IniFilename = NULL;
       return window != NULL;
     }
     void Deinit()
@@ -124,7 +125,7 @@ namespace ImGui
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
       return (uiTextureID)texture_id;
     }
-    ImVec2 Image(cv::Mat bgr, uiTextureID texture_id, ImGuiImageDrawFlgs align, bool autosize)
+    void Image(cv::Mat bgr, uiTextureID texture_id, ImGuiImageDrawFlgs align, bool autosize)
     {
       cv::Mat img;
       cv::cvtColor(bgr, img, cv::COLOR_BGR2RGB);
@@ -155,7 +156,6 @@ namespace ImGui
 
       ImGui::SetCursorPos(cur_pos);
       ImGui::Image((void*)(intptr_t)texture_id, view);
-      return cur_pos;
     }
   }
 

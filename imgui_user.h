@@ -38,6 +38,7 @@ typedef int ImGuiImageDrawFlgs;
 
 typedef unsigned int uiTextureID;		/* 4-byte unsigned */
 struct ImVec2;
+struct ImVec4;
 
 namespace ImGui
 {
@@ -54,7 +55,7 @@ namespace ImGui
     void        Render();
 
     uiTextureID CreateTexture();
-    ImVec2      Image(cv::Mat img, uiTextureID texture_id, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
+    void        Image(cv::Mat img, uiTextureID texture_id, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
 
   void          SetBackground(float r, float g, float b, float a);

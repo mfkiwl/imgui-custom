@@ -132,7 +132,35 @@ int main(int, char**)
         //ImGui::Text("Setting");
         ImGui::Text("장치");
         ImGui::SameLine();
-        ImGui::InputText("##devID", strCamID.data(), 13);
+        struct TextFilters
+        {
+          static int FilterVideoDev(ImGuiInputTextCallbackData* data)
+          {
+            printf("%d\n", data->EventFlag);
+            if (data->EventFlag & ImGuiInputTextFlags_CallbackCharFilter)
+            {
+              if (strchr("1234567890", (char)data->EventChar))
+                return 0;
+
+              return 1;
+            }
+
+            if (data->BufTextLen < 10)
+            {
+              data->Buf[9] = 'o';
+              data->Buf[10] = '\0';
+              data->BufTextLen = 10;
+              data->BufDirty = true;
+            }
+            if (data->CursorPos < 10)
+            {
+              data->CursorPos = 10;
+              data->BufDirty = true;
+            }
+            return 0;
+          }
+        };
+        ImGui::InputText("##DEVID", strCamID.data(), 13, ImGuiInputTextFlags_CallbackCharFilter | ImGuiInputTextFlags_CallbackAlways, TextFilters::FilterVideoDev);
         break;
       default:
         break;
