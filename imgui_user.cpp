@@ -159,11 +159,6 @@ namespace ImGui
     }
   }
 
-  void SetBackground(float r, float g, float b, float a)
-  {
-    clear_color = ImVec4(r, g, b, a);
-  }
-
   void SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing)
   {
     ImGuiStyle& style = ImGui::GetStyle();

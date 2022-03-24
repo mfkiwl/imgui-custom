@@ -58,7 +58,6 @@ namespace ImGui
     void        Image(cv::Mat img, uiTextureID texture_id, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
 
-  void          SetBackground(float r, float g, float b, float a);
   void          SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing);
   bool          RadioIconButton(const char* str_id, int* active_id, int btn_id, ImGuiButtonIcon icon, float scale = 1.5f);
 
