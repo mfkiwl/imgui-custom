@@ -308,6 +308,21 @@ namespace ImGui
     return ImGui::GetFrameHeight() * scale;
   }
 
+  void TabItemReorder(int itemIdx, int offset)
+  {
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    if (window->SkipItems)
+      return;
+
+    ImGuiTabBar* tab_bar = g.CurrentTabBar;
+    if (tab_bar == NULL)
+    {
+      IM_ASSERT_USER_ERROR(tab_bar, "Needs to be called between BeginTabBar() and EndTabBar()!");
+      return;
+    }
+    ImGui::TabBarQueueReorder(tab_bar, &tab_bar->Tabs[itemIdx], offset);
+  }
 
   bool PopupMessageBox(const char* name, const char* message, ImGuiPopMessageBoxFlags flags)
   {

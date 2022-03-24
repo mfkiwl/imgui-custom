@@ -60,9 +60,9 @@ namespace ImGui
 
   void          SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing);
   bool          RadioIconButton(const char* str_id, int* active_id, int btn_id, ImGuiButtonIcon icon, float scale = 1.5f);
-
   float         CalcRadioIconButtonSize(float scale = 1.5f);
 
+  void          TabItemReorder(int itemIdx, int offset);
 
   // PopupMessageBox with OpenPopup
   bool          PopupMessageBox(const char* name, const char* message, ImGuiPopMessageBoxFlags flags);

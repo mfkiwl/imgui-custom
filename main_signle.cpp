@@ -185,7 +185,7 @@ int main(int, char**)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
         cap.read(frame);
         {
-          ImGui::BeginChild("##VIEW CHILD", ImVec2(view_region, 0), false, window_flags);
+          ImGui::BeginChild("##REGIST VIEW", ImVec2(view_region, 0), false, window_flags);
           const char* items[] = { "Cam1", "Cam2" };
           static int current_item = 0;
           ImGui::SetWindowFontScale(1.0f);
@@ -210,11 +210,42 @@ int main(int, char**)
         ImGui::SameLine();
 
         cv::Mat img = cv::imread("0.jpg");
-        ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
+        ImGui::BeginChild("##REGIST INFO", ImVec2(info_region, 0), false, window_flags);
         ImVec2 wpos = ImGui::GetWindowPos();
         ImGui::SetWindowFontScale(1.0f);
-        ImGui::SDLGL2::Image(img, texture_ids[0], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
-        ImGui::NewLine();
+
+
+        ImGuiTabBarFlags tab_bar_flags =
+          ImGuiTabBarFlags_AutoSelectNewTabs |
+          ImGuiTabBarFlags_Reorderable |
+          ImGuiTabBarFlags_FittingPolicyResizeDown;
+        static int newidx = -1;
+        if (ImGui::BeginTabBar("##FACES", tab_bar_flags))
+        {
+          for (int p = 0; p < 3; p++)
+          {
+            bool open = true;
+            if (ImGui::BeginTabItem(cv::format("Face%d", p).c_str(), &open, ImGuiTabItemFlags_None))
+            {
+              if (newidx == p)
+              {
+                ImGui::TabItemReorder(2, -1);
+                newidx = -1;
+              }
+              ImGui::SDLGL2::Image(img, texture_ids[0], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
+              ImGui::EndTabItem();
+            }
+
+            if (!open)
+            {
+              newidx = p;
+            }
+          }
+          ImGui::EndTabBar();
+        }
+
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::SetCursorPosY(ImGui::GetWindowWidth() + ImGui::GetFrameHeightWithSpacing() + padding);
         ImGui::Text("이름: ");  ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * 13);
         ImGui::InputText("##NAME", name.data(), 13);
