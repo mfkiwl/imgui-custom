@@ -84,7 +84,7 @@ int main(int, char**)
     ImGui::SetNextWindowSize(io.DisplaySize, ImGuiCond_Always);
     ImGui::Begin("MainWnd", NULL, window_flags);
     {
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
+      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 10.0f));
       ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.00f));
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.52f, 0.52f, 0.52f, 1.0f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -107,7 +107,7 @@ int main(int, char**)
       if (ImGui::Button("-")) ImGui::OpenPopup("Delete?");
       ImGui::PopupMessageBox("Delete?", "All those beautiful files will be deleted.\nThis operation cannot be undone!\n\n", ImGuiPopMessageBoxFlags_OK_CANCEL | ImGuiPopMessageBoxFlags_DONT_ASK_ME);
 
-      ImGui::SetCursorPosY(io.DisplaySize.y - ImGui::CalcRadioIconButtonSize(btn_scale) - style.ItemSpacing.y);
+      ImGui::SetCursorPosY(io.DisplaySize.y - ImGui::CalcRadioIconButtonSize(btn_scale) - style.ItemSpacing.y - style.FramePadding.y);
       ImGui::RadioIconButton("##MENU SETTING", &active_menu, 3, ImGuiButtonIcon_Setting, btn_scale);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip(menus[3]);
       ImGui::EndChild();
@@ -124,7 +124,7 @@ int main(int, char**)
 
       ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.12f, 1.00f));
       ImGui::BeginChild("##View", ImVec2(0, 0), false, window_flags);
-      ImGui::SDLGL2::Image(frame, texture_id, ImGuiImageDrawFlgs_Center, true);
+      ImGui::SDLGL2::Image(frame, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_Center, true);
       ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
       ImGui::SetWindowFontScale(2.0f);
       ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
@@ -164,9 +164,9 @@ int main(int, char**)
     {
       ImGui::BeginGroup();
       {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16.0f, 16.0f));
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.12f, 1.00f));
-        ImGui::BeginChild("##TITLE", ImVec2(0, ImGui::GetTextLineHeight() + 16.0f), false, window_flags);
+        ImGui::BeginChild("##TITLE", ImVec2(0, ImGui::GetFrameHeightWithSpacing()), false, window_flags);
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), menus[active_menu]);
         ImGui::EndChild();
         ImGui::PopStyleColor(1);
@@ -189,15 +189,21 @@ int main(int, char**)
           const char* items[] = { "Cam1", "Cam2" };
           static int current_item = 0;
           ImGui::SetWindowFontScale(1.0f);
-          ImGui::SetNextItemWidth(ImGui::CalcTextSize("Cam10").x + ImGui::GetFrameHeight());
+          ImGui::SetNextItemWidth(ImGui::CalcTextSize("Cam10").x + ImGui::GetFrameHeightWithSpacing());
           ImGui::Combo("##Cam", &current_item, items, IM_ARRAYSIZE(items));
 
-          ImGui::SDLGL2::Image(frame, texture_id, ImGuiImageDrawFlgs_Center, true);
+          region = ImGui::GetContentRegionAvail();
+          ImGui::SDLGL2::Image(frame, texture_id, ImVec2(region.x, region.y - ImGui::GetFrameHeightWithSpacing()), ImGuiImageDrawFlgs_Center, true);
           ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
           ImGui::SetWindowFontScale(2.0f);
           ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
           ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "LIVE");
           ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+
+          ImGui::SetWindowFontScale(1.0f);
+          ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() - padding);
+          ImVec2 btn_size(ImGui::CalcTextSize("A").x * 5, 0);
+          ImGui::Button("촬영", btn_size);
           ImGui::EndChild();
         }
 
@@ -207,23 +213,17 @@ int main(int, char**)
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImVec2 wpos = ImGui::GetWindowPos();
         ImGui::SetWindowFontScale(1.0f);
-        ImGui::SDLGL2::Image(img, texture_ids[0]);
+        ImGui::SDLGL2::Image(img, texture_ids[0], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
+        ImGui::NewLine();
         ImGui::Text("이름: ");  ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * 13);
         ImGui::InputText("##NAME", name.data(), 13);
         ImGui::Text("직급: ");  ImGui::SameLine();
         ImGui::InputText("##WORK", work.data(), 13);
         ImGui::PopItemWidth();
-        ImGui::SetCursorPosY(region.y - ImGui::GetWindowPos().y - ImGui::GetFrameHeight() - style.ItemSpacing.y);
+        ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() - padding);
         ImVec2 btn_size(ImGui::CalcTextSize("A").x * 5, 0);
-        if (!bBtCapture)
-          bBtCapture = ImGui::Button("촬영", btn_size);
-        else
-        {
-          bBtRecapture = ImGui::Button("재촬영", btn_size);
-          ImGui::SameLine(0.0f, btn_size.x);
-          bBtManulRegist = ImGui::Button("등록 ", btn_size);
-        }
+        bBtManulRegist = ImGui::Button("등록 ", btn_size);
         ImGui::EndChild();
 
         ImGui::PopStyleVar();
@@ -259,7 +259,7 @@ int main(int, char**)
             {
               cv::Mat img = cv::imread(cv::format("%d.jpg", r * column + c));
               ImGui::TableNextColumn();
-              ImGui::SDLGL2::Image(img, texture_ids[r * column + c], ImGuiImageDrawFlgs_XCenter);
+              ImGui::SDLGL2::Image(img, texture_ids[r * column + c], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter);
               float indent = ImGui::GetItemRectMin().x - ImGui::GetCursorScreenPos().x;
               ImGui::Indent(indent);
               ImGui::Text("이름: 홍길동");
@@ -280,7 +280,7 @@ int main(int, char**)
         ImGui::SameLine();
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImGui::SetWindowFontScale(1.0f);
-        ImGui::SDLGL2::Image(img, texture_id, ImGuiImageDrawFlgs_XCenter, true);
+        ImGui::SDLGL2::Image(img, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
         ImGui::Text("ID: %d", clicked_id);
         ImGui::Text("이름: 홍길동");
         ImGui::Text("등록일: 홍길동");

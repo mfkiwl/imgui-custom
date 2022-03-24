@@ -55,7 +55,7 @@ namespace ImGui
     void        Render();
 
     uiTextureID CreateTexture();
-    void        Image(cv::Mat img, uiTextureID texture_id, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
+    void        Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
 
   void          SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing);
