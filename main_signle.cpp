@@ -252,6 +252,7 @@ int main(int, char**)
         ImGui::Text("직급: ");  ImGui::SameLine();
         ImGui::InputText("##WORK", work.data(), 13);
         ImGui::PopItemWidth();
+
         ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() - padding);
         ImVec2 btn_size(ImGui::CalcTextSize("A").x * 5, 0);
         bBtManulRegist = ImGui::Button("등록 ", btn_size);

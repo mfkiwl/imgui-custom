@@ -125,13 +125,10 @@ namespace ImGui
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
       return (uiTextureID)texture_id;
     }
-    void Image(cv::Mat bgr, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align, bool autosize)
+    void Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align, bool autosize)
     {
-      cv::Mat img;
-      cv::cvtColor(bgr, img, cv::COLOR_BGR2RGB);
-
       glBindTexture(GL_TEXTURE_2D, (GLuint)texture_id);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.cols, img.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, img.data);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB + (img.channels() - 3), img.cols, img.rows, 0, GL_BGR + (img.channels() - 3), GL_UNSIGNED_BYTE, img.data);
 
       ImVec2 view(img.cols, img.rows);
       if (autosize)
