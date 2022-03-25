@@ -59,8 +59,8 @@ int main(int, char**)
   ImGui::SetStyle(0.0f, ImVec2(0.0f, 0.0f), ImVec2(8.0f, 8.0f), 10.0f);
 
   const char* menus[] = { "Live", "Face Register", "Registration Status", "Setting" };
-  std::string name; name.reserve(15);
-  std::string work; work.reserve(15);
+  char name[15] = "";
+  char work[15] = "";
   bool bBtCapture = false, bBtRecapture = false, bBtManulRegist = false;
   while (!done)
   {
@@ -245,9 +245,9 @@ int main(int, char**)
         ImGui::SetCursorPosY(ImGui::GetWindowWidth() + ImGui::GetFrameHeightWithSpacing() + padding);
         ImGui::Text("이름: ");  ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * 13);
-        ImGui::InputText("##NAME", name.data(), 13);
+        ImGui::InputText("##NAME", name, 13);
         ImGui::Text("직급: ");  ImGui::SameLine();
-        ImGui::InputText("##WORK", work.data(), 13);
+        ImGui::InputText("##WORK", work, 13);
         ImGui::PopItemWidth();
 
         ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() - padding);
