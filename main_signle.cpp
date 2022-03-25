@@ -292,7 +292,7 @@ int main(int, char**)
             ImGui::TableNextRow();
             for (int c = 0; c < column; c++)
             {
-              cv::Mat img = cv::imread(cv::format("%d.jpg", r * column + c));
+              cv::Mat img = cv::imread(cv::format("%d.jpg", (r * column + c) % 5));
               ImGui::TableNextColumn();
               ImGui::SDLGL2::Image(img, texture_ids[r * column + c], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter);
               float indent = ImGui::GetItemRectMin().x - ImGui::GetCursorScreenPos().x;
@@ -316,7 +316,7 @@ int main(int, char**)
         ImGui::SameLine();
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImGui::SetWindowFontScale(1.0f);
-        cv::Mat img = cv::imread(cv::format("%d.jpg", clicked_id));
+        cv::Mat img = cv::imread(cv::format("%d.jpg", clicked_id % 5)) ;
         ImGui::SDLGL2::Image(img, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
         ImGui::Text("ID: %d", clicked_id);
         ImGui::SeparatorWithSpacing(ImGuiSeparatorDirs_Horizontal);

@@ -268,6 +268,7 @@ namespace ImGui
     if (pressed)
     {
       if (!active) *active_id = btn_id;
+      else pressed = false;
       // else *active_id = -1;
     }
 
