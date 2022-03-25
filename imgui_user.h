@@ -32,9 +32,17 @@ enum ImGuiImageDrawFlgs_
   ImGuiImageDrawFlgs_Center = ImGuiImageDrawFlgs_XCenter | ImGuiImageDrawFlgs_YCenter,
 };
 
+enum ImGuiSeparatorDirs_
+{
+  ImGuiSeparatorDirs_None = 0,
+  ImGuiSeparatorDirs_Horizontal = 1 << 0,   // Axis default to current layout type, so generally Horizontal unless e.g. in a menu bar
+  ImGuiSeparatorDirs_Vertical = 1 << 1,
+};
+
 typedef int ImGuiPopMessageBoxFlags;
 typedef int ImGuiButtonIcon;
 typedef int ImGuiImageDrawFlgs;
+typedef int ImGuiSeparatorDirs;        // -> enum ImGuiSeparatorFlags_     // Flags: for SeparatorEx()
 
 typedef unsigned int uiTextureID;		/* 4-byte unsigned */
 struct ImVec2;
@@ -63,6 +71,8 @@ namespace ImGui
   float         CalcRadioIconButtonSize(float scale = 1.5f);
 
   void          TabItemReorder(int itemIdx, int offset);
+
+  void          SeparatorWithSpacing(ImGuiSeparatorDirs dir);
 
   // PopupMessageBox with OpenPopup
   bool          PopupMessageBox(const char* name, const char* message, ImGuiPopMessageBoxFlags flags);

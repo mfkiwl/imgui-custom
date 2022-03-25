@@ -64,18 +64,15 @@ int main(int, char**)
   bool bBtCapture = false, bBtRecapture = false, bBtManulRegist = false;
   while (!done)
   {
-    static int active_menu = cap.isOpened() ? 1 : 3;
+    static int active_menu = cap.isOpened() ? 2 : 3;
 
     ImGui::SDLGL2::NewFrame();
 
     ImGuiWindowFlags window_flags =
       ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoTitleBar |
-      ImGuiWindowFlags_NoScrollbar |
       ImGuiWindowFlags_NoMove |
-      ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoCollapse |
       ImGuiWindowFlags_NoNav |
+      ImGuiWindowFlags_NoDecoration |
       ImGuiWindowFlags_AlwaysUseWindowPadding;
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
@@ -271,13 +268,19 @@ int main(int, char**)
         const float icon_size = 112;
         const int column = (icon_region - padding * 2) / (icon_size + icon_spacing);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+        ImGui::BeginChild("##STATUS CHILD", ImVec2(icon_region, 0), false, window_flags & ~ImGuiWindowFlags_NoScrollbar);
 
-        ImGui::BeginChild("##STATUS CHILD", ImVec2(icon_region, 0), false, window_flags);
+        if (0)
+        {
+          ImVec2 pos = ImGui::GetWindowPos();
+          ImVec2 size = ImGui::GetWindowSize();
+          ImGui::GetForegroundDrawList()->AddRect(ImVec2(pos.x + padding, pos.y + padding), ImVec2(pos.x + size.x - padding, pos.y + size.y - padding), IM_COL32(255, 0, 0, 255));
+        }
         ImGuiTableFlags table_flags =
           ImGuiTableFlags_SizingFixedFit |
           //  ImGuiTableFlags_SizingFixedSame;
-          ImGuiTableFlags_Borders |
+          //  ImGuiTableFlags_Borders |
           ImGuiTableFlags_SizingFixedSame;
 
         static int clicked_id = 0;
@@ -308,14 +311,19 @@ int main(int, char**)
         }
         ImGui::EndChild();
 
-        cv::Mat img = cv::imread(cv::format("%d.jpg", clicked_id));
+        ImGui::SameLine();
+        ImGui::SeparatorWithSpacing(ImGuiSeparatorDirs_Vertical);
         ImGui::SameLine();
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImGui::SetWindowFontScale(1.0f);
+        cv::Mat img = cv::imread(cv::format("%d.jpg", clicked_id));
         ImGui::SDLGL2::Image(img, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
         ImGui::Text("ID: %d", clicked_id);
+        ImGui::SeparatorWithSpacing(ImGuiSeparatorDirs_Horizontal);
         ImGui::Text("이름: 홍길동");
+        ImGui::SeparatorWithSpacing(ImGuiSeparatorDirs_Horizontal);
         ImGui::Text("등록일: 홍길동");
+        ImGui::SeparatorWithSpacing(ImGuiSeparatorDirs_Horizontal);
         ImGui::EndChild();
 
         ImGui::PopStyleVar();
