@@ -1,14 +1,25 @@
+#include "imgui.h"
 #include "imgui_user.h"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include "imgui_internal.h"
-#include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl2.h"
 
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include "imgui_impl_sdl.h"
+
+#include <GLFW/glfw3.h>
+#include "imgui_impl_glfw.h"
+
+// [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
+// To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
+// Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
+#if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
+#pragma comment(lib, "legacy_stdio_definitions")
+#endif
 
 namespace ImGui
 {
@@ -23,8 +34,8 @@ namespace ImGui
     bool Init(const char* title, int x, int y, int w, int h, bool full_screen)
     {
       // Setup SDL
-  // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
-  // depending on whether SDL_INIT_GAMECONTROLLER is enabled or disabled.. updating to latest version of SDL is recommended!)
+      // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
+      // depending on whether SDL_INIT_GAMECONTROLLER is enabled or disabled.. updating to latest version of SDL is recommended!)
       if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
       {
         printf("SDL Error: %s\n", SDL_GetError());
@@ -42,7 +53,7 @@ namespace ImGui
       SDL_GL_MakeCurrent(window, gl_context);
       SDL_GL_SetSwapInterval(1); // Enable vsync
 
-    // Setup Dear ImGui context
+      // Setup Dear ImGui context
       ImGui::CreateContext();
 
       // Setup Platform/Renderer backends
@@ -54,6 +65,10 @@ namespace ImGui
 
       ImGui::GetIO().IniFilename = NULL;
       return window != NULL;
+    }
+    bool Init(const char* title, int w, int h, bool full_screen)
+    {
+      return Init(title, ImGui::CENTER, ImGui::CENTER, w, h, full_screen);
     }
     void Deinit()
     {
@@ -86,7 +101,7 @@ namespace ImGui
       // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
       // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
       // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-      bool done;
+      bool done = false;
       SDL_Event event;
       while (SDL_PollEvent(&event))
       {
@@ -110,6 +125,136 @@ namespace ImGui
       //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
       ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
       SDL_GL_SwapWindow(window);
+    }
+
+    uiTextureID CreateTexture()
+    {
+      GLuint texture_id;
+      glGenTextures(1, &texture_id);
+      glBindTexture(GL_TEXTURE_2D, texture_id);
+
+      // Setup filtering parameters for display
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+      return (uiTextureID)texture_id;
+    }
+    void Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align, bool autosize)
+    {
+      glBindTexture(GL_TEXTURE_2D, (GLuint)texture_id);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB + (img.channels() - 3), img.cols, img.rows, 0, GL_BGR + (img.channels() - 3), GL_UNSIGNED_BYTE, img.data);
+
+      ImVec2 view(img.cols, img.rows);
+      if (autosize)
+      {
+        float aspr_region = (float)region.x / region.y;
+        float aspr_img = (float)img.cols / img.rows;
+        float scale = 1.0;
+        if (aspr_region > aspr_img)
+          scale = (float)region.y / img.rows;
+        else
+          scale = (float)region.x / img.cols;
+        view = ImVec2(img.cols * scale, img.rows * scale);
+      }
+
+      ImVec2 cur_pos = ImGui::GetCursorPos();
+      cur_pos.x += (align & 1) / 1 * (region.x - view.x);
+      cur_pos.y += (align & 2) / 2 * (region.y - view.y);
+
+      cur_pos.x += (align & 4) / 8.0f * (region.x - view.x);
+      cur_pos.y += (align & 8) / 16.0f * (region.y - view.y);
+
+      ImGui::SetCursorPos(cur_pos);
+      ImGui::Image((void*)(intptr_t)texture_id, view);
+    }
+  }
+
+  namespace GLFWGL2
+  {
+    static void glfw_error_callback(int error, const char* description)
+    {
+      fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+    }
+
+    GLFWwindow* window;
+    bool Init(const char* title, int w, int h, bool full_screen)
+    {
+      glfwSetErrorCallback(glfw_error_callback);
+      if (!glfwInit())  return 1;
+      window = glfwCreateWindow(w, h, title, full_screen == true ? glfwGetPrimaryMonitor() : NULL, NULL);
+      if (window == NULL)
+        return 1;
+      glfwMakeContextCurrent(window);
+      glfwSwapInterval(1); // Enable vsync
+
+        // Setup Dear ImGui context
+      ImGui::CreateContext();
+
+      // Setup Platform/Renderer backends
+      ImGui_ImplGlfw_InitForOpenGL(window, true);
+      ImGui_ImplOpenGL2_Init();
+
+      // Setup Dear ImGui style
+      ImGui::StyleColorsDark();
+
+      ImGui::GetIO().IniFilename = NULL;
+      return window != NULL;
+    }
+    void Deinit()
+    {
+      // Cleanup
+      ImGui_ImplOpenGL2_Shutdown();
+      ImGui_ImplGlfw_Shutdown();
+      ImGui::DestroyContext();
+
+      glfwDestroyWindow(window);
+      glfwTerminate();
+    }
+
+    void NewFrame()
+    {
+      // Start the Dear ImGui frame
+      ImGui_ImplOpenGL2_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+    }
+
+    bool Update()
+    {
+      Render();
+
+      // Poll and handle events (inputs, window resize, etc.)
+      // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+      // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
+      // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
+      // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+      bool done = glfwWindowShouldClose(window);
+      glfwPollEvents();
+      return done;
+    }
+
+    void Render()
+    {
+      ImGuiIO& io = ImGui::GetIO();
+      // Rendering
+      ImGui::Render();
+      int display_w, display_h;
+      glfwGetFramebufferSize(window, &display_w, &display_h);
+      glViewport(0, 0, display_w, display_h);
+      glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+      glClear(GL_COLOR_BUFFER_BIT);
+
+      // If you are using this code with non-legacy OpenGL header/contexts (which you should not, prefer using imgui_impl_opengl3.cpp!!),
+      // you may need to backup/reset/restore other state, e.g. for current shader using the commented lines below.
+      //GLint last_program;
+      //glGetIntegerv(GL_CURRENT_PROGRAM, &last_program);
+      //glUseProgram(0);
+      ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+      //glUseProgram(last_program);
+
+      glfwMakeContextCurrent(window);
+      glfwSwapBuffers(window);
     }
 
     uiTextureID CreateTexture()

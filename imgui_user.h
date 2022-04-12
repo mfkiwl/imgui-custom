@@ -54,6 +54,7 @@ namespace ImGui
   namespace SDLGL2
   {
     bool        Init(const char* title, int x = CENTER, int y = CENTER, int w = 640, int h = 480, bool full_screen = false);
+    bool        Init(const char* title, int w, int h, bool full_screen);
     void        Deinit();
 
 
@@ -65,6 +66,21 @@ namespace ImGui
     uiTextureID CreateTexture();
     void        Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
+  namespace GLFWGL2
+  {
+    bool        Init(const char* title, int w = 640, int h = 480, bool full_screen = false);
+    void        Deinit();
+
+
+    void        NewFrame();
+
+    bool        Update();
+    void        Render();
+
+    uiTextureID CreateTexture();
+    void        Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
+  }
+
 
   void          SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing);
   bool          RadioIconButton(const char* str_id, int* active_id, int btn_id, ImGuiButtonIcon icon, float scale = 1.5f);

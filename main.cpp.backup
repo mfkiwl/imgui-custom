@@ -133,7 +133,7 @@ int main(int, char**)
       ImGui::SetNextWindowPos(ImVec2(MenuSize.x, 0.0f), ImGuiCond_Always);
       ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - MenuSize.x, io.DisplaySize.y), ImGuiCond_Always);
       ImGui::Begin("##VIEW", NULL, window_flags);
-      ImGui::SDLGL2::Image(frame, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_Center, true);
+      ImGui::SDLGL2::Image(frame, texture_id, ImGuiImageDrawFlgs_Center, true);
       ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
       ImGui::SetWindowFontScale(2.0f);
       ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
@@ -231,7 +231,7 @@ int main(int, char**)
 
         {
           ImGui::BeginChild("##VIEW CHILD", ImVec2(view_region, 0), false, window_flags);
-          ImGui::SDLGL2::Image(frame, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_Center, true);
+          ImGui::SDLGL2::Image(frame, texture_id, ImGuiImageDrawFlgs_Center, true);
           ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
           ImGui::SetWindowFontScale(2.0f);
           ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
@@ -244,7 +244,7 @@ int main(int, char**)
         ImGui::SameLine();
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImGui::SetWindowFontScale(1.0f);
-        ImGui::SDLGL2::Image(img, texture_ids[0], ImGui::GetContentRegionAvail());
+        ImGui::SDLGL2::Image(img, texture_ids[0]);
         ImGui::Text("이름: ");  ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::CalcTextSize("A").x * 13);
         ImGui::InputText("##NAME", name.data(), 13);
@@ -296,7 +296,7 @@ int main(int, char**)
             {
               cv::Mat img = cv::imread(cv::format("%d.jpg", r * column + c));
               ImGui::TableNextColumn();
-              ImGui::SDLGL2::Image(img, texture_ids[r * column + c], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter);
+              ImGui::SDLGL2::Image(img, texture_ids[r * column + c], ImGuiImageDrawFlgs_XCenter);
               float indent = ImGui::GetItemRectMin().x - ImGui::GetCursorScreenPos().x;
               ImGui::Indent(indent);
               ImGui::Text("이름: 홍길동");
@@ -317,7 +317,7 @@ int main(int, char**)
         ImGui::SameLine();
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImGui::SetWindowFontScale(1.0f);
-        ImGui::SDLGL2::Image(img, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
+        ImGui::SDLGL2::Image(img, texture_id, ImGuiImageDrawFlgs_XCenter, true);
         ImGui::Text("ID: %d", clicked_id);
         ImGui::Text("이름: 홍길동");
         ImGui::Text("등록일: 홍길동");
