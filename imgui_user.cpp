@@ -126,48 +126,6 @@ namespace ImGui
       ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
       SDL_GL_SwapWindow(window);
     }
-
-    uiTextureID CreateTexture()
-    {
-      GLuint texture_id;
-      glGenTextures(1, &texture_id);
-      glBindTexture(GL_TEXTURE_2D, texture_id);
-
-      // Setup filtering parameters for display
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
-      return (uiTextureID)texture_id;
-    }
-    void Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align, bool autosize)
-    {
-      glBindTexture(GL_TEXTURE_2D, (GLuint)texture_id);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB + (img.channels() - 3), img.cols, img.rows, 0, GL_BGR + (img.channels() - 3), GL_UNSIGNED_BYTE, img.data);
-
-      ImVec2 view(img.cols, img.rows);
-      if (autosize)
-      {
-        float aspr_region = (float)region.x / region.y;
-        float aspr_img = (float)img.cols / img.rows;
-        float scale = 1.0;
-        if (aspr_region > aspr_img)
-          scale = (float)region.y / img.rows;
-        else
-          scale = (float)region.x / img.cols;
-        view = ImVec2(img.cols * scale, img.rows * scale);
-      }
-
-      ImVec2 cur_pos = ImGui::GetCursorPos();
-      cur_pos.x += (align & 1) / 1 * (region.x - view.x);
-      cur_pos.y += (align & 2) / 2 * (region.y - view.y);
-
-      cur_pos.x += (align & 4) / 8.0f * (region.x - view.x);
-      cur_pos.y += (align & 8) / 16.0f * (region.y - view.y);
-
-      ImGui::SetCursorPos(cur_pos);
-      ImGui::Image((void*)(intptr_t)texture_id, view);
-    }
   }
 
   namespace GLFWGL2
@@ -256,7 +214,10 @@ namespace ImGui
       glfwMakeContextCurrent(window);
       glfwSwapBuffers(window);
     }
+  }
 
+  namespace GL2
+  {
     uiTextureID CreateTexture()
     {
       GLuint texture_id;
@@ -298,7 +259,8 @@ namespace ImGui
       ImGui::SetCursorPos(cur_pos);
       ImGui::Image((void*)(intptr_t)texture_id, view);
     }
-  }
+  } // namespace GL2
+
 
   void SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing)
   {

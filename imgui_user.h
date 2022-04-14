@@ -63,8 +63,6 @@ namespace ImGui
     bool        Update();
     void        Render();
 
-    uiTextureID CreateTexture();
-    void        Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
   namespace GLFWGL2
   {
@@ -76,11 +74,13 @@ namespace ImGui
 
     bool        Update();
     void        Render();
+  }
 
+  namespace GL2
+  {
     uiTextureID CreateTexture();
     void        Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
-
 
   void          SetStyle(float window_border, ImVec2 window_padding, ImVec2 frame_padding, float item_spacing);
   bool          RadioIconButton(const char* str_id, int* active_id, int btn_id, ImGuiButtonIcon icon, float scale = 1.5f);

@@ -42,13 +42,13 @@ int main(int, char**)
   io.Fonts->AddFontFromFileTTF("fonts/NanumBarunGothic.ttf", 32.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 
   // Our state
-  uiTextureID texture_id = ImGui::GLFWGL2::CreateTexture();
+  uiTextureID texture_id = ImGui::GL2::CreateTexture();
   std::vector<int> texture_ids;
   for (int r = 0; r < 2; r++)
   {
     for (int c = 0; c < 5; c++)
     {
-      texture_ids.push_back(ImGui::GLFWGL2::CreateTexture());
+      texture_ids.push_back(ImGui::GL2::CreateTexture());
     }
   }
 
@@ -121,7 +121,7 @@ int main(int, char**)
 
       ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.12f, 1.00f));
       ImGui::BeginChild("##View", ImVec2(0, 0), false, window_flags);
-      ImGui::GLFWGL2::Image(frame, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_Center, true);
+      ImGui::GL2::Image(frame, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_Center, true);
       ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
       ImGui::SetWindowFontScale(2.0f);
       ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
@@ -190,7 +190,7 @@ int main(int, char**)
           ImGui::Combo("##Cam", &current_item, items, IM_ARRAYSIZE(items));
 
           region = ImGui::GetContentRegionAvail();
-          ImGui::GLFWGL2::Image(frame, texture_id, ImVec2(region.x, region.y - ImGui::GetFrameHeightWithSpacing()), ImGuiImageDrawFlgs_Center, true);
+          ImGui::GL2::Image(frame, texture_id, ImVec2(region.x, region.y - ImGui::GetFrameHeightWithSpacing()), ImGuiImageDrawFlgs_Center, true);
           ImVec2 pos = ImGui::GetItemRectMin(), size = ImGui::GetItemRectSize();
           ImGui::SetWindowFontScale(2.0f);
           ImGui::SetCursorScreenPos(ImVec2(pos.x + size.x - ImGui::CalcTextSize("LIVE").x - 32.0f, pos.y + 32.0f));
@@ -229,7 +229,7 @@ int main(int, char**)
                 ImGui::TabItemReorder(2, -1);
                 newidx = -1;
               }
-              ImGui::GLFWGL2::Image(img, texture_ids[0], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
+              ImGui::GL2::Image(img, texture_ids[0], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
               ImGui::EndTabItem();
             }
 
@@ -294,7 +294,7 @@ int main(int, char**)
             {
               cv::Mat img = cv::imread(cv::format("%d.jpg", (r * column + c) % 5));
               ImGui::TableNextColumn();
-              ImGui::GLFWGL2::Image(img, texture_ids[r * column + c], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter);
+              ImGui::GL2::Image(img, texture_ids[r * column + c], ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter);
               float indent = ImGui::GetItemRectMin().x - ImGui::GetCursorScreenPos().x;
               ImGui::Indent(indent);
               ImGui::Text("이름: 홍길동");
@@ -317,7 +317,7 @@ int main(int, char**)
         ImGui::BeginChild("##INFO CHILD", ImVec2(info_region, 0), false, window_flags);
         ImGui::SetWindowFontScale(1.0f);
         cv::Mat img = cv::imread(cv::format("%d.jpg", clicked_id % 5));
-        ImGui::GLFWGL2::Image(img, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
+        ImGui::GL2::Image(img, texture_id, ImGui::GetContentRegionAvail(), ImGuiImageDrawFlgs_XCenter, true);
         ImGui::Text("ID: %d", clicked_id);
         ImGui::SeparatorWithSpacing(ImGuiSeparatorDirs_Horizontal);
         ImGui::Text("이름: 홍길동");
