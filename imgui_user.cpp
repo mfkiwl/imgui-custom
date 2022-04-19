@@ -218,19 +218,25 @@ namespace ImGui
 
   namespace GL2
   {
-    uiTextureID CreateTexture()
+    void GenTextures(int n, uiTextureID* textures)
     {
-      GLuint texture_id;
-      glGenTextures(1, &texture_id);
-      glBindTexture(GL_TEXTURE_2D, texture_id);
+      glGenTextures(n, (GLuint*)textures);
+      for (int i = 0; i < n; i++)
+      {
+        glBindTexture(GL_TEXTURE_2D, textures[i]);
 
-      // Setup filtering parameters for display
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
-      return (uiTextureID)texture_id;
+        // Setup filtering parameters for display
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+      }
     }
+    void DeleteTextures(int n, uiTextureID* textures)
+    {
+      glDeleteTextures(n, (GLuint*)textures);
+    }
+
     void Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align, bool autosize)
     {
       glBindTexture(GL_TEXTURE_2D, (GLuint)texture_id);

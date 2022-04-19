@@ -78,7 +78,9 @@ namespace ImGui
 
   namespace GL2
   {
-    uiTextureID CreateTexture();
+    void        GenTextures(int n, uiTextureID* textures);
+    void        DeleteTextures(int n, uiTextureID* textures);
+
     void        Image(cv::Mat img, uiTextureID texture_id, ImVec2 region, ImGuiImageDrawFlgs align = ImGuiImageDrawFlgs_AignNone, bool autosize = false);
   }
 

@@ -42,15 +42,8 @@ int main(int, char**)
   io.Fonts->AddFontFromFileTTF("fonts/NanumBarunGothic.ttf", 32.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 
   // Our state
-  uiTextureID texture_id = ImGui::GL2::CreateTexture();
-  std::vector<int> texture_ids;
-  for (int r = 0; r < 2; r++)
-  {
-    for (int c = 0; c < 5; c++)
-    {
-      texture_ids.push_back(ImGui::GL2::CreateTexture());
-    }
-  }
+  uiTextureID texture_id; ImGui::GL2::GenTextures(1, &texture_id);
+  uiTextureID texture_ids[10]; ImGui::GL2::GenTextures(10, texture_ids);
 
   // Main loop
   cv::Mat frame;
